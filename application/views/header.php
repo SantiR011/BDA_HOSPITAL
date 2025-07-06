@@ -30,7 +30,7 @@
                                 </span>
                             </li>
                             <li class="divider"></li>
-                            <li><a href="<?php echo base_url();?>index.php?<?php echo $this->session->userdata('login_type');?>/manage_profile">
+                            <li><a href="<?php echo base_url();?>index.php?<?php echo $this->session->userdata('login_type');?>/gestionar_perfil">
                                     <i class="icon-user"></i><span>Perfil</span></a></li>
                             <li><a href="<?php echo base_url();?>index.php?login/logout">
                                     <i class="icon-off"></i><span>Cerrar sesión</span></a></li>

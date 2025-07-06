@@ -14,7 +14,7 @@ class ImageUploadController extends CI_Controller {
     }
 
     public function store() {
-        $config['upload_path'] = './uploads/informe_diagnostico/';
+        $config['upload_path'] = './uploads/diagnosis_report/';
         $config['allowed_types'] = 'gif|jpg|png';
         $config['max_size'] = 2000;
         $config['max_width'] = 1500;

@@ -3,9 +3,9 @@
         <span style="font-weight: bold;">&copy; <?php echo date('Y'); ?> David Santiago Rincón Hernández</span> - <span style="font-style: italic;">20221578045</span>
     </div>
     <div>
-        <span style="font-weight: bold;">&copy; <?php echo date('Y'); ?> Kevin David Alfonso Díaz</span> - <span style="font-style: italic;">20221578131</span>
+        <span style="font-weight: bold;">&copy; <?php echo date('Y'); ?> Fabian Mauricio Caro Ruiz </span> - <span style="font-style: italic;">20192573009</span>
     </div>
     <div>
-        <span style="font-weight: bold;">&copy; <?php echo date('Y'); ?> Santiago Montañez</span> - <span style="font-style: italic;">20212578042</span>
+        <span style="font-weight: bold;">&copy; <?php echo date('Y'); ?> Derek Santiago Ruiz González </span> - <span style="font-style: italic;">20221978028</span>
     </div>
 </div>
