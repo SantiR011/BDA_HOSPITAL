@@ -7,7 +7,7 @@
  *---------------------------------------------------------------
 
  * APPLICATION ENVIRONMENT
-reporte
+
  *---------------------------------------------------------------
 
  *
@@ -15,7 +15,7 @@ reporte
  * You can load different configurations depending on your
 
  * current environment. Setting the environment also influences
-reporte
+
  * things like logging and error reporting.
 
  *
@@ -24,7 +24,7 @@ reporte
 
  *
 
- *     developmentreporte
+ *     development
 
  *     testing
 
@@ -33,12 +33,12 @@ reporte
  *
 
  * NOTE: If you change these, also change the error_reporting() code below
-reporte
+
  *
 
  */
 
-	define('reporteNMENT', 'production');
+	define('ENVIRONMENT', 'production');
 
 /*
 

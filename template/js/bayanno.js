@@ -20484,7 +20484,7 @@ function (e, t) {
 
         var K = this;
 
-        K.options = r, K.render = l, K.destroy = d, K.refetchEvents = L, K.reporteEvents = A, K.reporteEventChange = O, K.rerenderEvents = M, K.changeView = y, K.select = D, K.unselect = P, K.prev = B, K.next = j, K.prevYear = F, K.nextYear = R, K.today = U, K.gotoDate = z, K.incrementDate = W, K.formatDate = function (e, t) {
+        K.options = r, K.render = l, K.destroy = d, K.refetchEvents = L, K.reportEvents = A, K.reportEventChange = O, K.rerenderEvents = M, K.changeView = y, K.select = D, K.unselect = P, K.prev = B, K.next = j, K.prevYear = F, K.nextYear = R, K.today = U, K.gotoDate = z, K.incrementDate = W, K.formatDate = function (e, t) {
 
             return w(e, t, r)
 
@@ -20956,7 +20956,7 @@ function (e, t) {
 
             N = x.getView,
 
-            C = x.reporteEvents,
+            C = x.reportEvents,
 
             k = {
 
@@ -21966,7 +21966,7 @@ function (e, t) {
 
         var B = this;
 
-        B.renderBasic = i, B.setHeight = f, B.setWidth = l, B.renderDayOverlay = m, B.defaultSelectionEnd = y, B.renderSelection = b, B.clearSelection = w, B.reporteDayClick = E, B.dragStart = S, B.dragStop = x, B.defaultEventEnd = T, B.getHoverListener = function () {
+        B.renderBasic = i, B.setHeight = f, B.setWidth = l, B.renderDayOverlay = m, B.defaultSelectionEnd = y, B.renderSelection = b, B.clearSelection = w, B.reportDayClick = E, B.dragStart = S, B.dragStop = x, B.defaultEventEnd = T, B.getHoverListener = function () {
 
             return lt
 
@@ -22142,9 +22142,9 @@ function (e, t) {
 
             c = o.isEventResizable,
 
-            p = o.reporteEvents,
+            p = o.reportEvents,
 
-            d = o.reporteEventClear,
+            d = o.reportEventClear,
 
             v = o.eventElementHandlers,
 
@@ -22734,7 +22734,7 @@ function (e, t) {
 
             return Ut
 
-        }, Z.defaultSelectionEnd = U, Z.renderDayOverlay = T, Z.renderSelection = z, Z.clearSelection = X, Z.reporteDayClick = Q, Z.dragStart = G, Z.dragStop = Y, ft.call(Z, n, r, i), ht.call(Z), ct.call(Z), ut.call(Z);
+        }, Z.defaultSelectionEnd = U, Z.renderDayOverlay = T, Z.renderSelection = z, Z.clearSelection = X, Z.reportDayClick = Q, Z.dragStart = G, Z.dragStop = Y, ft.call(Z, n, r, i), ht.call(Z), ct.call(Z), ut.call(Z);
 
         var et = Z.opt,
 
@@ -22746,7 +22746,7 @@ function (e, t) {
 
             it = Z.clearOverlays,
 
-            st = Z.reporteSelection,
+            st = Z.reportSelection,
 
             ot = Z.unselect,
 
@@ -23150,9 +23150,9 @@ function (e, t) {
 
             x = g.eventEnd,
 
-            T = g.reporteEvents,
+            T = g.reportEvents,
 
-            N = g.reporteEventClear,
+            N = g.reportEventClear,
 
             A = g.eventElementHandlers,
 
@@ -23186,7 +23186,7 @@ function (e, t) {
 
             K = g.getBodyContent,
 
-            G = g.reporteEventElement,
+            G = g.reportEventElement,
 
             Y = g.showEvents,
 
@@ -23410,13 +23410,13 @@ function (e, t) {
 
         var T = this;
 
-        T.element = e, T.calendar = n, T.name = r, T.opt = i, T.trigger = s, T.isEventDraggable = o, T.isEventResizable = u, T.reporteEvents = c, T.eventEnd = p, T.reporteEventElement = d, T.reporteEventClear = v, T.eventElementHandlers = m, T.showEvents = g, T.hideEvents = y, T.eventDrop = w, T.eventResize = E;
+        T.element = e, T.calendar = n, T.name = r, T.opt = i, T.trigger = s, T.isEventDraggable = o, T.isEventResizable = u, T.reportEvents = c, T.eventEnd = p, T.reportEventElement = d, T.reportEventClear = v, T.eventElementHandlers = m, T.showEvents = g, T.hideEvents = y, T.eventDrop = w, T.eventResize = E;
 
         var N = T.defaultEventEnd,
 
             C = n.normalizeEvent,
 
-            k = n.reporteEventChange,
+            k = n.reportEventChange,
 
             L = {}, A = [],
 
@@ -23748,7 +23748,7 @@ function (e, t) {
 
             S = g.eventEnd,
 
-            x = g.reporteEventElement,
+            x = g.reportEventElement,
 
             T = g.showEvents,
 
@@ -23824,7 +23824,7 @@ function (e, t) {
 
                 a = s.getHoverListener(),
 
-                c = s.reporteDayClick;
+                c = s.reportDayClick;
 
             if (t.which == 1 && o("selectable")) {
 
@@ -23848,7 +23848,7 @@ function (e, t) {
 
         var s = this;
 
-        s.select = t, s.unselect = n, s.reporteSelection = r, s.daySelectionMousedown = i;
+        s.select = t, s.unselect = n, s.reportSelection = r, s.daySelectionMousedown = i;
 
         var o = s.opt,
 
