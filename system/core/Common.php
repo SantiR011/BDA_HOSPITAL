@@ -120,7 +120,7 @@ if ( ! function_exists('is_really_writable'))
 */
 if ( ! function_exists('load_class'))
 {
-	function load_class($class, $directory = 'libraries', $prefix = 'CI_')
+	function &load_class($class, $directory = 'libraries', $prefix = 'CI_')
 	{
 		static $_classes = array();
 
@@ -187,7 +187,7 @@ if ( ! function_exists('load_class'))
 */
 if ( ! function_exists('is_loaded'))
 {
-	function is_loaded($class = '')
+	function &is_loaded($class = '')
 	{
 		static $_is_loaded = array();
 
@@ -213,7 +213,7 @@ if ( ! function_exists('is_loaded'))
 */
 if ( ! function_exists('get_config'))
 {
-	function get_config($replace = array())
+	function &get_config($replace = array())
 	{
 		static $_config;
 
@@ -458,7 +458,7 @@ if ( ! function_exists('set_status_header'))
 * PHP errors to be logged in our own log files since the user may
 * not have access to server logs. Since this function
 * effectively intercepts PHP errors, however, we also need
-* to display errors based on the current error_reporteing level.
+* to display errors based on the current error_reporting level.
 * We do that with the use of a PHP error template.
 *
 * @access	private
@@ -480,7 +480,7 @@ if ( ! function_exists('_exception_handler'))
 
 		$_error =& load_class('Exceptions', 'core');
 
-		// Should we display the error? We'll get the current error_reporteing
+		// Should we display the error? We'll get the current error_reporting
 		// level and add its bits with the severity bits to find out.
 		if (($severity & error_reporting()) == $severity)
 		{
