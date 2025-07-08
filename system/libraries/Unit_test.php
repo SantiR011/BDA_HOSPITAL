@@ -108,7 +108,7 @@ class CI_Unit_test {
 
 		$back = $this->_backtrace();
 
-		$reporte[] = array (
+		$report[] = array (
 							'test_name'			=> $test_name,
 							'test_datatype'		=> gettype($test),
 							'res_datatype'		=> $extype,
@@ -118,22 +118,22 @@ class CI_Unit_test {
 							'notes'				=> $notes
 						);
 
-		$this->results[] = $reporte;
+		$this->results[] = $report;
 
-		return($this->reporte($this->result($reporte)));
+		return($this->report($this->result($report)));
 	}
 
 	// --------------------------------------------------------------------
 
 	/**
-	 * Generate a reporte
+	 * Generate a report
 	 *
 	 * Displays a table with the test data
 	 *
 	 * @access	public
 	 * @return	string
 	 */
-	function reporte($result = array())
+	function report($result = array())
 	{
 		if (count($result) == 0)
 		{
