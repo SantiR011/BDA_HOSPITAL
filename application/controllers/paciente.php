@@ -54,89 +54,205 @@ class Paciente extends CI_Controller
 	/***paciente DASHBOARD***/
 
 	function dashboard()
-	{
+{
+    if ($this->session->userdata('paciente_login') != 1)
+        redirect(base_url() . 'index.php?login', 'refresh');
 
-		if ($this->session->userdata('paciente_login') != 1)
+    $paciente_id = $this->session->userdata('numero_id'); // El paciente se identifica por numero_id
 
-			redirect(base_url() . 'index.php?login', 'refresh');
+    // Obtener las citas del paciente logueado con estado 'programado' (estado_id = 1)
+    $this->db->select('cita.*, medico.nombres as medico_nombre, medico.apellidos as medico_apellido');
+    $this->db->from('cita');
+    $this->db->join('medico', 'medico.numero_id = cita.medico_id');
+    $this->db->where('cita.paciente_id', $paciente_id);
+    $this->db->where('cita.estado_id', 1); // Solo citas programadas
+    $citas = $this->db->get()->result_array();
 
+    $page_data['citas'] = $citas;
+    $page_data['page_name'] = 'dashboard';
+    $page_data['page_title'] = 'Cuadro de mandos del paciente';
 
+    $this->load->view('index', $page_data);
+}
 
-		$page_data['page_name'] = 'dashboard';
-
-		$page_data['page_title'] = ('Panel de control del paciente');
-
-		$this->load->view('index', $page_data);
-
-	}
 
 
 
 	/***VIEW APPOINTMENTS******/
 
-	function gestionar_cita($param1 = '', $param2 = '', $param3 = '')
-	{
-		// Solo puede acceder un usuario con sesión de paciente
-		if ($this->session->userdata('paciente_login') != 1)
-			redirect(base_url() . 'index.php?login', 'refresh');
+	public function gestionar_cita($param1 = '', $param2 = '', $param3 = '')
+    {
+        if ($this->session->userdata('paciente_login') != 1)
+            redirect(base_url() . 'index.php?login', 'refresh');
 
-		$numero_id = $this->session->userdata('numero_id');
+        // Crear cita
+        if ($param1 == 'create') {
+            $medico_id = $this->input->post('medico_id');
+            $paciente_id = $this->input->post('paciente_id');
+            $especialidad_id = $this->input->post('especialidad_id');
+            $lugar_id = $this->input->post('lugar_id');
+            $estado_id = $this->input->post('estado_id');
+            $fecha_hora = $this->input->post('fecha_hora');
 
-		if ($param1 == 'create') {
-			$data['numero_id'] = $this->input->post('numero_id');
-			$data['numero_id'] = $numero_id; // Forzar al paciente actual
-			$data['especialidad_id'] = $this->input->post('especialidad_id');
-			$data['lugar_id'] = $this->input->post('lugar_id');
-			$data['estado_id'] = $this->input->post('estado_id');
-			$data['fecha_hora'] = $this->input->post('fecha_hora');
-			$data['fecha_registro'] = date('Y-m-d H:i:s');
-			$data['fecha_actualizacion'] = date('Y-m-d H:i:s');
+            // Validar hora entre 7:00 AM y 10:00 PM
+            $hora_cita = date('H:i:s', strtotime($fecha_hora));
+            $minuto = date('i', strtotime($fecha_hora));
+            if ($minuto != '00' && $minuto != '30') {
+                $this->session->set_flashdata('error', 'Las citas solo pueden agendarse cada 30 minutos (ej: 08:00, 08:30, 09:00, etc).');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
 
-			$this->db->insert('cita', $data);
-			$this->session->set_flashdata('flash_message', 'Cita creada correctamente');
-			redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
-		}
+            if ($hora_cita < '07:00:00' || $hora_cita > '22:00:00') {
+                $this->session->set_flashdata('error', 'La cita debe estar entre las 7:00 AM y las 10:00 PM.');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
 
-		if ($param1 == 'edit' && $param2 == 'do_update') {
-			$data['numero_id'] = $this->input->post('numero_id');
-			$data['especialidad_id'] = $this->input->post('especialidad_id');
-			$data['lugar_id'] = $this->input->post('lugar_id');
-			$data['estado_id'] = $this->input->post('estado_id');
-			$data['fecha_hora'] = $this->input->post('fecha_hora');
-			$data['fecha_actualizacion'] = date('Y-m-d H:i:s');
+            // Validar que el médico no tenga otra cita a esa hora exacta
+            $existe = $this->db
+                ->where('medico_id', $medico_id)
+                ->where('fecha_hora', $fecha_hora)
+                ->count_all_results('cita');
+            if ($existe > 0) {
+                $this->session->set_flashdata('error', 'El médico ya tiene una cita en esa fecha y hora.');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
 
-			// Validar que la cita pertenezca al paciente antes de actualizar
-			$this->db->where('cita_id', $param3);
-			$this->db->where('numero_id', $numero_id);
-			$this->db->update('cita', $data);
+            // Validar límite mensual (si no es medicina general)
+            $especialidad = $this->db->get_where('especialidad', ['especialidad_id' => $especialidad_id])->row();
+            if (strtolower(trim($especialidad->nombre)) != 'medicina general') {
+                $inicio_mes = date('Y-m-01 00:00:00', strtotime($fecha_hora));
+                $fin_mes = date('Y-m-t 23:59:59', strtotime($fecha_hora));
 
-			$this->session->set_flashdata('flash_message', 'Cita actualizada correctamente');
-			redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
-		} else if ($param1 == 'edit') {
-			$page_data['edit_profile'] = $this->db->get_where('cita', array(
-				'cita_id' => $param2,
-				'numero_id' => $numero_id
-			))->result_array();
-		}
+                $this->db->where('paciente_id', $paciente_id);
+                $this->db->where('especialidad_id', $especialidad_id);
+                $this->db->where('fecha_hora >=', $inicio_mes);
+                $this->db->where('fecha_hora <=', $fin_mes);
+                $conteo = $this->db->count_all_results('cita');
 
-		if ($param1 == 'delete') {
-			// Validar que la cita pertenezca al paciente antes de eliminar
-			$this->db->where('cita_id', $param2);
-			$this->db->where('numero_id', $numero_id);
-			$this->db->delete('cita');
-			$this->session->set_flashdata('flash_message', 'Cita eliminada correctamente');
-			redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
-		}
+                if ($conteo >= 2) {
+                    $this->session->set_flashdata('error', 'No se pueden asignar más de dos citas de esta especialidad en el mismo mes para este paciente.');
+                    redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                    return;
+                }
+            }
 
-		// Obtener solo las citas del paciente actual
-		$page_data['page_name'] = 'gestionar_cita';
-		$page_data['page_title'] = 'Gestionar cita';
-		$page_data['citas'] = $this->db->get_where('cita', array(
-			'numero_id' => $numero_id
-		))->result_array();
+            // Validar que la fecha no esté en el pasado
+            if (strtotime($fecha_hora) < strtotime(date('Y-m-d H:i:s'))) {
+                $this->session->set_flashdata('error', 'No se puede programar una cita en una fecha y hora anterior a la actual.');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
 
-		$this->load->view('index', $page_data);
-	}
+            // Guardar la cita
+            $data = [
+                'medico_id' => $medico_id,
+                'paciente_id' => $paciente_id,
+                'especialidad_id' => $especialidad_id,
+                'lugar_id' => $lugar_id,
+                'estado_id' => $estado_id,
+                'fecha_hora' => $fecha_hora,
+                'fecha_registro' => date('Y-m-d H:i:s'),
+                'fecha_actualizacion' => date('Y-m-d H:i:s'),
+            ];
+
+            $this->db->insert('cita', $data);
+            $this->session->set_flashdata('flash_message', 'Cita creada correctamente');
+            redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+        }
+
+        // Editar cita
+        if ($param1 == 'edit' && $param2 == 'do_update') {
+
+            // Verificar que la cita tenga estado 1
+            $cita_existente = $this->db->get_where('cita', ['cita_id' => $param3])->row();
+            if (!$cita_existente || $cita_existente->estado_id != 1) {
+                $this->session->set_flashdata('error', 'Solo se pueden editar citas que estén programadas (estado 1).');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
+
+            $fecha_hora = $this->input->post('fecha_hora');
+
+            // Validar que no sea en el pasado
+            if (strtotime($fecha_hora) < strtotime(date('Y-m-d H:i:s'))) {
+                $this->session->set_flashdata('error', 'No se puede actualizar una cita a una fecha y hora anterior a la actual.');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
+
+            // Validar rango horario
+            $hora_cita = date('H:i:s', strtotime($fecha_hora));
+            $minuto = date('i', strtotime($fecha_hora));
+            if ($minuto != '00' && $minuto != '30') {
+                $this->session->set_flashdata('error', 'Las citas solo pueden agendarse cada 30 minutos (ej: 08:00, 08:30, 09:00, etc).');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
+
+            if ($hora_cita < '07:00:00' || $hora_cita > '22:00:00') {
+                $this->session->set_flashdata('error', 'La cita debe estar entre las 7:00 AM y las 10:00 PM.');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
+
+            // Validar que el médico no tenga otra cita en esa hora (excluyendo la actual)
+            $medico_id = $this->input->post('medico_id');
+            $conflicto = $this->db
+                ->where('medico_id', $medico_id)
+                ->where('fecha_hora', $fecha_hora)
+                ->where('cita_id !=', $param3)
+                ->count_all_results('cita');
+
+            if ($conflicto > 0) {
+                $this->session->set_flashdata('error', 'El médico ya tiene una cita en esa fecha y hora.');
+                redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+                return;
+            }
+
+            $data['paciente_id'] = $this->input->post('paciente_id');
+            $data['medico_id'] = $medico_id;
+            $data['especialidad_id'] = $this->input->post('especialidad_id');
+            $data['lugar_id'] = $this->input->post('lugar_id');
+            $data['estado_id'] = $this->input->post('estado_id');
+            $data['fecha_hora'] = $fecha_hora;
+            $data['fecha_actualizacion'] = date('Y-m-d H:i:s');
+
+            $this->db->where('cita_id', $param3);
+            $this->db->update('cita', $data);
+            $this->session->set_flashdata('flash_message', 'Cita actualizada correctamente');
+            redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+        }
+
+
+        // Obtener cita para edición
+        if ($param1 == 'edit') {
+            $page_data['edit_profile'] = $this->db->get_where('cita', ['cita_id' => $param2])->result_array();
+        }
+
+        // Eliminar cita
+        if ($param1 == 'delete') {
+            $this->db->where('cita_id', $param2);
+            $this->db->delete('cita');
+            $this->session->set_flashdata('flash_message', 'Cita eliminada correctamente');
+            redirect(base_url() . 'index.php?paciente/gestionar_cita', 'refresh');
+        }
+
+        // Datos para vista
+        $page_data['page_name'] = 'gestionar_cita';
+        $page_data['page_title'] = 'Gestionar citas';
+        $page_data['citas'] = $this->db->get('cita')->result_array();
+        $page_data['pacientes'] = $this->db->get('paciente')->result_array();
+        $page_data['medicos'] = $this->db->get('medico')->result_array();
+        $page_data['lugares'] = $this->db->get('lugar')->result_array();
+        $page_data['especialidades'] = $this->db->get('especialidad')->result_array();
+        $page_data['estados'] = $this->db->get('estado_cita')->result_array();
+
+        $this->load->view('index', $page_data);
+    }
+
 
 
 

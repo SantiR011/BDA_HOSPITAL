@@ -76,7 +76,7 @@
 
 					<i class="icon-edit icon-2x"></i>
 
-					<span><?php echo ('Administrar cita');?></span>
+					<span><?php echo ('Citas');?></span>
 
 				</a>
 

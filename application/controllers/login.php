@@ -211,7 +211,14 @@ class Login extends CI_Controller
 
         $this->session->set_userdata('login_type', $login_type);
         $this->session->set_userdata($login_type . '_login', '1');
-        $this->session->set_userdata($login_type . '_id', $row->{$login_type . '_id'});
+
+        // Si el login es como médico, usamos numero_id como médico_id
+        if ($login_type === 'medico') {
+            $this->session->set_userdata('medico_id', $row->numero_id);
+        }
+
+        // Puedes usar esto si necesitas el número_id genérico en otras partes
+        $this->session->set_userdata('numero_id', $row->numero_id);
 
         return TRUE;
     } else {
@@ -219,6 +226,8 @@ class Login extends CI_Controller
         return FALSE;
     }
 }
+
+
 
 
 	/*******LOGOUT FUNCTION *******/

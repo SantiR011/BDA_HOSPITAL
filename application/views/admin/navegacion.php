@@ -31,55 +31,116 @@
       </a>
     </li>
 
-    <li class="<?php if ($page_name == 'gestionar_medico')
-      echo 'dark-nav active'; ?>">
+    <!-- Submenú Médicos -->
+    <li
+      class="dark-nav <?php if ($page_name == 'gestionar_medico' || $page_name == 'ver_medico_desactivado')
+        echo 'active'; ?>">
       <span class="glow"></span>
-      <a href="<?php echo base_url(); ?>index.php?admin/gestionar_medico">
+      <a class="accordion-toggle" data-toggle="collapse" href="#submenu_medico">
         <i class="icon-user-md icon-2x"></i>
-        <span><?php echo ('Médico'); ?></span>
+        <span><?php echo ('Médicos'); ?> <i class="icon-caret-down"></i></span>
       </a>
+      <ul id="submenu_medico"
+        class="collapse <?php if ($page_name == 'gestionar_medico' || $page_name == 'ver_medico_desactivado')
+          echo 'in'; ?>">
+        <li class="<?php if ($page_name == 'gestionar_medico')
+          echo 'active'; ?>">
+          <a href="<?php echo base_url(); ?>index.php?admin/gestionar_medico">
+            <i class="icon-user-md"></i> <?php echo ('Gestionar Médicos'); ?>
+          </a>
+        </li>
+        <li class="<?php if ($page_name == 'ver_medico_desactivado')
+          echo 'active'; ?>">
+          <a href="<?php echo base_url(); ?>index.php?admin/ver_medico_desactivado">
+            <i class="icon-eye-close"></i> <?php echo ('Ver Médicos desactivados'); ?>
+          </a>
+        </li>
+      </ul>
     </li>
 
-    <li class="<?php if ($page_name == 'gestionar_paciente')
-      echo 'dark-nav active'; ?>">
+    <!-- Submenú Pacientes -->
+    <li
+      class="dark-nav <?php if ($page_name == 'gestionar_paciente' || $page_name == 'ver_paciente_desactivado')
+        echo 'active'; ?>">
       <span class="glow"></span>
-      <a href="<?php echo base_url(); ?>index.php?admin/gestionar_paciente">
+      <a class="accordion-toggle" data-toggle="collapse" href="#submenu_paciente">
         <i class="icon-user icon-2x"></i>
-        <span><?php echo ('Paciente'); ?></span>
+        <span><?php echo ('Pacientes'); ?> <i class="icon-caret-down"></i></span>
       </a>
+      <ul id="submenu_paciente"
+        class="collapse <?php if ($page_name == 'gestionar_paciente' || $page_name == 'ver_paciente_desactivado')
+          echo 'in'; ?>">
+        <li class="<?php if ($page_name == 'gestionar_paciente')
+          echo 'active'; ?>">
+          <a href="<?php echo base_url(); ?>index.php?admin/gestionar_paciente">
+            <i class="icon-user"></i> <?php echo ('Gestionar Pacientes'); ?>
+          </a>
+        </li>
+        <li class="<?php if ($page_name == 'ver_paciente_desactivado')
+          echo 'active'; ?>">
+          <a href="<?php echo base_url(); ?>index.php?admin/ver_paciente_desactivado">
+            <i class="icon-eye-close"></i> <?php echo ('Ver Pacientes desactivados'); ?>
+          </a>
+        </li>
+      </ul>
     </li>
 
+    <!--Submenu Reportes-->
+    <li
+      class="dark-nav <?php if ($page_name == 'reporte_citas_medico' || $page_name == 'reportes_citas_paciente' || $page_name == 'reportes_citas_ausentes')
+        echo 'active'; ?>">
+      <span class="glow"></span>
+      <a class="accordion-toggle" data-toggle="collapse" href="#submenu_reporte">
+        <i class="icon-bar-chart icon-2x"></i>
+        <span><?php echo ('Reportes'); ?> <i class="icon-caret-down"></i></span>
+      </a>
+      <ul id="submenu_reporte"
+        class="collapse <?php if ($page_name == 'reporte_citas_medico' || $page_name == 'reportes_citas_paciente' || $page_name == 'reportes_citas_ausentes')
+          echo 'in'; ?>">
+        <li class="<?php if ($page_name == 'reporte_citas_medico')
+          echo 'active'; ?>">
+          <a href="<?php echo base_url(); ?>index.php?admin/reporte_citas_medico">
+            <i class="icon-check"></i></i> <?php echo ('Reporte Citas Atendidas Medico'); ?>
+          </a>
+        </li>
+        <li class="<?php if ($page_name == 'reportes_citas_paciente')
+          echo 'active'; ?>">
+          <a href="<?php echo base_url(); ?>index.php?admin/reporte_citas_paciente">
+            <i class="icon-check"></i></i> <?php echo ('Reporte citas Paciente'); ?>
+          </a>
+        </li>
+        <li class="<?php if ($page_name == 'reportes_citas_ausentes')
+          echo 'active'; ?>">
+          <a href="<?php echo base_url(); ?>index.php?admin/reporte_citas_ausentes">
+            <i class="icon-remove"></i> <?php echo ('Reporte citas Ausentes'); ?>
+          </a>
+        </li>
+      </ul>
+    </li>
+
+
+    <!-- Citas -->
     <li class="<?php if ($page_name == 'ver_cita')
       echo 'dark-nav active'; ?>">
       <span class="glow"></span>
       <a href="<?php echo base_url(); ?>index.php?admin/gestionar_cita">
-        <i class="icon-exchange icon-2x"></i>
+        <i class="icon-time icon-2x"></i>
         <span><?php echo ('Ver Cita'); ?></span>
       </a>
     </li>
 
-    <li class="dark-nav <?php if (
-      $page_name == 'manage_email_template' ||
-      $page_name == 'gestionar_tablon_de_anuncios' ||
-      $page_name == 'system_settings' ||
-      $page_name == 'manage_language' ||
-      $page_name == 'backup_restore'
-    )
-      echo 'active'; ?>">
+    <!-- Submenú Ajustes -->
+    <li
+      class="dark-nav <?php if ($page_name == 'gestionar_tablon_de_anuncios' || $page_name == 'system_settings')
+        echo 'active'; ?>">
       <span class="glow"></span>
-      <a class="accordion-toggle" data-toggle="collapse" href="#settings_submenu">
-        <i class="icon-wrench icon-2x"></i>
-        <span><?php echo ('Ajustes'); ?><i class="icon-caret-down"></i></span>
+      <a class="accordion-toggle" data-toggle="collapse" href="#submenu_ajustes">
+        <i class="icon-cogs icon-2x"></i>
+        <span><?php echo ('Ajustes'); ?> <i class="icon-caret-down"></i></span>
       </a>
-
-      <ul id="settings_submenu" class="collapse <?php if (
-        $page_name == 'manage_email_template' ||
-        $page_name == 'gestionar_tablon_de_anuncios' ||
-        $page_name == 'system_settings' ||
-        $page_name == 'manage_language' ||
-        $page_name == 'backup_restore'
-      )
-        echo 'in'; ?>">
+      <ul id="submenu_ajustes"
+        class="collapse <?php if ($page_name == 'gestionar_tablon_de_anuncios' || $page_name == 'system_settings')
+          echo 'in'; ?>">
         <li class="<?php if ($page_name == 'gestionar_tablon_de_anuncios')
           echo 'active'; ?>">
           <a href="<?php echo base_url(); ?>index.php?admin/gestionar_tablon_de_anuncios">
@@ -95,6 +156,7 @@
       </ul>
     </li>
 
+    <!-- Perfil -->
     <li class="<?php if ($page_name == 'gestionar_perfil')
       echo 'dark-nav active'; ?>">
       <span class="glow"></span>

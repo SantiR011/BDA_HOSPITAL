@@ -52,16 +52,27 @@
                         </div>
 
                         <div class="control-group">
-                            <label class="control-label"><?php echo ('Contraseña'); ?></label>
+                            <label class="control-label"><?php echo ('Dirección'); ?></label>
                             <div class="controls">
-                                <input type="password" name="contrasena" value="<?php echo $row['contrasena']; ?>" required />
+                                <input type="text" name="direccion" value="<?php echo $row['direccion']; ?>" required />
                             </div>
                         </div>
 
                         <div class="control-group">
-                            <label class="control-label"><?php echo ('Dirección'); ?></label>
+                            <label class="control-label"><?php echo ('Municipio'); ?></label>
                             <div class="controls">
-                                <input type="text" name="direccion" value="<?php echo $row['direccion']; ?>" required />
+                                <select name="municipio_id" class="chzn-select" required>
+                                    <option value="">Seleccione un municipio</option>
+                                    <?php
+                                    $municipios = $this->db->get('municipio')->result_array();
+                                    foreach ($municipios as $muni):
+                                        ?>
+                                        <option value="<?php echo $muni['municipio_id']; ?>" <?php if ($muni['municipio_id'] == $row['municipio_id'])
+                                               echo 'selected'; ?>>
+                                            <?php echo $muni['nombre']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
 
@@ -102,7 +113,7 @@
         <div class="tab-content">
             <div class="tab-pane box active" id="password" style="padding: 5px">
                 <div class="box-content padded">
-                    <?php echo form_open('admin/gestionar_perfil/change_password/', array('class' => 'form-horizontal validatable')); ?>
+                    <?php echo form_open('medico/gestionar_perfil/change_password/', array('class' => 'form-horizontal validatable')); ?>
 
                     <div class="control-group">
                         <label class="control-label"><?php echo ('Contraseña Actual'); ?></label>

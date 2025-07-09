@@ -94,10 +94,34 @@ class Admin extends CI_Controller
             $estado_id = $this->input->post('estado_id');
             $fecha_hora = $this->input->post('fecha_hora');
 
-            // Obtener el nombre de la especialidad
-            $especialidad = $this->db->get_where('especialidad', ['especialidad_id' => $especialidad_id])->row();
+            // Validar hora entre 7:00 AM y 10:00 PM
+            $hora_cita = date('H:i:s', strtotime($fecha_hora));
+            $minuto = date('i', strtotime($fecha_hora));
+            if ($minuto != '00' && $minuto != '30') {
+                $this->session->set_flashdata('error', 'Las citas solo pueden agendarse cada 30 minutos (ej: 08:00, 08:30, 09:00, etc).');
+                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
+                return;
+            }
 
-            // Solo validar si la especialidad NO es medicina general
+            if ($hora_cita < '07:00:00' || $hora_cita > '22:00:00') {
+                $this->session->set_flashdata('error', 'La cita debe estar entre las 7:00 AM y las 10:00 PM.');
+                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
+                return;
+            }
+
+            // Validar que el médico no tenga otra cita a esa hora exacta
+            $existe = $this->db
+                ->where('medico_id', $medico_id)
+                ->where('fecha_hora', $fecha_hora)
+                ->count_all_results('cita');
+            if ($existe > 0) {
+                $this->session->set_flashdata('error', 'El médico ya tiene una cita en esa fecha y hora.');
+                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
+                return;
+            }
+
+            // Validar límite mensual (si no es medicina general)
+            $especialidad = $this->db->get_where('especialidad', ['especialidad_id' => $especialidad_id])->row();
             if (strtolower(trim($especialidad->nombre)) != 'medicina general') {
                 $inicio_mes = date('Y-m-01 00:00:00', strtotime($fecha_hora));
                 $fin_mes = date('Y-m-t 23:59:59', strtotime($fecha_hora));
@@ -115,6 +139,14 @@ class Admin extends CI_Controller
                 }
             }
 
+            // Validar que la fecha no esté en el pasado
+            if (strtotime($fecha_hora) < strtotime(date('Y-m-d H:i:s'))) {
+                $this->session->set_flashdata('error', 'No se puede programar una cita en una fecha y hora anterior a la actual.');
+                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
+                return;
+            }
+
+            // Guardar la cita
             $data = [
                 'medico_id' => $medico_id,
                 'paciente_id' => $paciente_id,
@@ -126,31 +158,62 @@ class Admin extends CI_Controller
                 'fecha_actualizacion' => date('Y-m-d H:i:s'),
             ];
 
-            if (strtotime($fecha_hora) < strtotime(date('Y-m-d H:i:s'))) {
-                $this->session->set_flashdata('error', 'No se puede programar una cita en una fecha y hora anterior a la actual.');
-                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
-                return;
-            }
-
             $this->db->insert('cita', $data);
             $this->session->set_flashdata('flash_message', 'Cita creada correctamente');
             redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
         }
 
-
-        // Editar y actualizar cita
+        // Editar cita
         if ($param1 == 'edit' && $param2 == 'do_update') {
+
+            // Verificar que la cita tenga estado 1
+            $cita_existente = $this->db->get_where('cita', ['cita_id' => $param3])->row();
+            if (!$cita_existente || $cita_existente->estado_id != 1) {
+                $this->session->set_flashdata('error', 'Solo se pueden editar citas que estén programadas (estado 1).');
+                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
+                return;
+            }
+
             $fecha_hora = $this->input->post('fecha_hora');
 
-            // Validar que la fecha de la cita no sea anterior a la actual
+            // Validar que no sea en el pasado
             if (strtotime($fecha_hora) < strtotime(date('Y-m-d H:i:s'))) {
                 $this->session->set_flashdata('error', 'No se puede actualizar una cita a una fecha y hora anterior a la actual.');
                 redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
                 return;
             }
 
+            // Validar rango horario
+            $hora_cita = date('H:i:s', strtotime($fecha_hora));
+            $minuto = date('i', strtotime($fecha_hora));
+            if ($minuto != '00' && $minuto != '30') {
+                $this->session->set_flashdata('error', 'Las citas solo pueden agendarse cada 30 minutos (ej: 08:00, 08:30, 09:00, etc).');
+                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
+                return;
+            }
+
+            if ($hora_cita < '07:00:00' || $hora_cita > '22:00:00') {
+                $this->session->set_flashdata('error', 'La cita debe estar entre las 7:00 AM y las 10:00 PM.');
+                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
+                return;
+            }
+
+            // Validar que el médico no tenga otra cita en esa hora (excluyendo la actual)
+            $medico_id = $this->input->post('medico_id');
+            $conflicto = $this->db
+                ->where('medico_id', $medico_id)
+                ->where('fecha_hora', $fecha_hora)
+                ->where('cita_id !=', $param3)
+                ->count_all_results('cita');
+
+            if ($conflicto > 0) {
+                $this->session->set_flashdata('error', 'El médico ya tiene una cita en esa fecha y hora.');
+                redirect(base_url() . 'index.php?admin/gestionar_cita', 'refresh');
+                return;
+            }
+
             $data['paciente_id'] = $this->input->post('paciente_id');
-            $data['medico_id'] = $this->input->post('medico_id');
+            $data['medico_id'] = $medico_id;
             $data['especialidad_id'] = $this->input->post('especialidad_id');
             $data['lugar_id'] = $this->input->post('lugar_id');
             $data['estado_id'] = $this->input->post('estado_id');
@@ -164,7 +227,7 @@ class Admin extends CI_Controller
         }
 
 
-        // Obtener cita para editar
+        // Obtener cita para edición
         if ($param1 == 'edit') {
             $page_data['edit_profile'] = $this->db->get_where('cita', ['cita_id' => $param2])->result_array();
         }
@@ -189,6 +252,7 @@ class Admin extends CI_Controller
 
         $this->load->view('index', $page_data);
     }
+
 
 
 
@@ -478,129 +542,140 @@ class Admin extends CI_Controller
         $this->load->view('index', $page_data);
     }
 
-    /*public function reporte_citas_medico()
+    public function reporte_citas_medico()
 {
     if ($this->session->userdata('admin_login') != 1)
         redirect(base_url() . 'index.php?login', 'refresh');
 
-    $page_data['page_name']  = 'reporte_citas_medico';
-    $page_data['page_title'] = 'Reporte de citas por médico';
-    $page_data['medicos']    = $this->db->get('medico')->result_array();
-    $page_data['reportes']   = [];
+    $page_data['page_name'] = 'reporte_citas_medico';
+    $page_data['page_title'] = 'Reporte de citas atendidas por médico';
+    $page_data['medicos'] = $this->db->get('medico')->result_array();
+    $page_data['reportes'] = [];
 
     if ($this->input->post()) {
         $medico_id = $this->input->post('medico_id');
-        $mes       = $this->input->post('mes');
+        $mes = $this->input->post('mes');  // Ejemplo: "2025-07"
         $inicio_mes = $mes . '-01';
-        $fin_mes    = date('Y-m-t', strtotime($inicio_mes)) . ' 23:59:59';
+        $fin_mes = date('Y-m-t', strtotime($inicio_mes)) . ' 23:59:59';
 
-        $this->db->select('cita.*, 
-                          paciente.nombres as paciente_nombres, 
-                          paciente.apellidos as paciente_apellidos,
-                          medico.nombres as medico_nombres, 
-                          medico.apellidos as medico_apellidos,
-                          estado_cita.nombre AS estado');
-        $this->db->from('cita');
-        $this->db->join('paciente', 'paciente.numero_id = cita.paciente_id');
-        $this->db->join('medico', 'medico.numero_id = cita.medico_id');
-        $this->db->join('estado_cita', 'estado_cita.estado_id = cita.estado_id');
-        $this->db->where('cita.medico_id', $medico_id);
-        $this->db->where('cita.fecha_hora >=', $inicio_mes);
-        $this->db->where('cita.fecha_hora <=', $fin_mes);
+        // 1. Consultar citas atendidas
+        $this->db->from('vista_citas_medico_atendidas');
+        $this->db->where('medico_id', $medico_id);
+        $this->db->where('fecha_hora >=', $inicio_mes);
+        $this->db->where('fecha_hora <=', $fin_mes);
+        $page_data['reportes'] = $this->db->get()->result_array();
 
-        $page_data['reportes']         = $this->db->get()->result_array();
-        $page_data['selected_medico']  = $medico_id;
-        $page_data['selected_mes']     = $mes;
+        $page_data['selected_medico'] = $medico_id;
+        $page_data['selected_mes'] = $mes;
+
+        // Extraer año y mes numéricos
+        $ano = date('Y', strtotime($mes . '-01'));
+        $mes_num = date('m', strtotime($mes . '-01'));
+
+        // 2. Registrar que se generó un reporte (sin validar si ya existía)
+        $data_reporte = [
+            'tipo' => 'medico',
+            'mes' => $mes_num,
+            'ano' => $ano,
+            'parametro_id' => $medico_id,
+            'fecha_generacion' => date('Y-m-d H:i:s')
+        ];
+        $this->db->insert('reporte', $data_reporte);
     }
 
     $this->load->view('index', $page_data);
-}*/
+}
 
-    public function reporte_citas_medico()
-    {
-        if ($this->session->userdata('admin_login') != 1)
-            redirect(base_url() . 'index.php?login', 'refresh');
 
-        $page_data['page_name'] = 'reporte_citas_medico';
-        $page_data['page_title'] = 'Reporte de citas atendidas por médico';
-        $page_data['medicos'] = $this->db->get('medico')->result_array();
-        $page_data['reportes'] = [];
-
-        if ($this->input->post()) {
-            $medico_id = $this->input->post('medico_id');
-            $mes = $this->input->post('mes');
-            $inicio_mes = $mes . '-01';
-            $fin_mes = date('Y-m-t', strtotime($inicio_mes)) . ' 23:59:59';
-
-            $this->db->from('vista_citas_medico_atendidas');
-            $this->db->where('medico_id', $medico_id);
-            $this->db->where('fecha_hora >=', $inicio_mes);
-            $this->db->where('fecha_hora <=', $fin_mes);
-
-            $page_data['reportes'] = $this->db->get()->result_array();
-            $page_data['selected_medico'] = $medico_id;
-            $page_data['selected_mes'] = $mes;
-        }
-
-        $this->load->view('index', $page_data);
-    }
 
     public function reporte_citas_paciente()
-    {
-        if ($this->session->userdata('admin_login') != 1)
-            redirect(base_url() . 'index.php?login', 'refresh');
+{
+    if ($this->session->userdata('admin_login') != 1)
+        redirect(base_url() . 'index.php?login', 'refresh');
 
-        $page_data['page_name'] = 'reporte_citas_paciente';
-        $page_data['page_title'] = 'Reporte de citas por paciente';
-        $page_data['pacientes'] = $this->db->get('paciente')->result_array();
-        $page_data['reportes'] = [];
+    $page_data['page_name'] = 'reporte_citas_paciente';
+    $page_data['page_title'] = 'Reporte de citas por paciente';
+    $page_data['pacientes'] = $this->db->get('paciente')->result_array();
+    $page_data['reportes'] = [];
 
-        if ($this->input->post()) {
-            $paciente_id = $this->input->post('paciente_id');
-            $mes = $this->input->post('mes');
-            $inicio_mes = $mes . '-01';
-            $fin_mes = date('Y-m-t', strtotime($inicio_mes)) . ' 23:59:59';
+    if ($this->input->post()) {
+    $paciente_id = $this->input->post('paciente_id');
+    $mes = $this->input->post('mes');  // Ejemplo: "2025-07"
+    $inicio_mes = $mes . '-01';
+    $fin_mes = date('Y-m-t', strtotime($inicio_mes)) . ' 23:59:59';
 
-            $this->db->from('vista_citas_paciente');
-            $this->db->where('paciente_id', $paciente_id);
-            $this->db->where('fecha_hora >=', $inicio_mes);
-            $this->db->where('fecha_hora <=', $fin_mes);
+    $this->db->from('vista_citas_paciente');
+    $this->db->where('paciente_id', $paciente_id);
+    $this->db->where('fecha_hora >=', $inicio_mes);
+    $this->db->where('fecha_hora <=', $fin_mes);
 
-            $page_data['reportes'] = $this->db->get()->result_array();
-            $page_data['selected_paciente'] = $paciente_id;
-            $page_data['selected_mes'] = $mes;
-        }
+    $page_data['reportes'] = $this->db->get()->result_array();
 
-        $this->load->view('index', $page_data);
-    }
+    $page_data['selected_paciente'] = $paciente_id;
+    $page_data['selected_mes'] = $mes;
+
+    // Extraer año y mes numéricos
+    $ano = date('Y', strtotime($mes . '-01'));
+    $mes_num = date('m', strtotime($mes . '-01'));
+
+    // Guardar reporte con mes y año separados
+    $data_reporte = [
+        'tipo' => 'paciente',
+        'mes' => $mes_num,
+        'ano' => $ano,
+        'parametro_id' => $paciente_id,
+        'fecha_generacion' => date('Y-m-d H:i:s')
+    ];
+    $this->db->insert('reporte', $data_reporte);
+}
+
+
+    $this->load->view('index', $page_data);
+}
+
 
 
 
 
     public function reporte_citas_ausentes()
-    {
-        if ($this->session->userdata('admin_login') != 1)
-            redirect(base_url() . 'index.php?login', 'refresh');
+{
+    if ($this->session->userdata('admin_login') != 1)
+        redirect(base_url() . 'index.php?login', 'refresh');
 
-        $page_data['page_name'] = 'reporte_citas_ausentes';
-        $page_data['page_title'] = 'Relación de las citas no asistidas sin cancelación previa';
-        $page_data['reports'] = [];
+    $page_data['page_name'] = 'reporte_citas_ausentes';
+    $page_data['page_title'] = 'Relación de las citas no asistidas sin cancelación previa';
+    $page_data['reports'] = [];
 
-        if ($this->input->post()) {
-            $mes = $this->input->post('mes'); // formato: YYYY-MM
-            $inicio_mes = $mes . '-01';
-            $fin_mes = date("Y-m-t", strtotime($inicio_mes)) . ' 23:59:59';
+    if ($this->input->post()) {
+        $mes = $this->input->post('mes'); // formato: YYYY-MM
+        $inicio_mes = $mes . '-01';
+        $fin_mes = date("Y-m-t", strtotime($inicio_mes)) . ' 23:59:59';
 
-            $this->db->from('vista_citas_ausentes');
-            $this->db->where('fecha_hora >=', $inicio_mes);
-            $this->db->where('fecha_hora <=', $fin_mes);
+        $this->db->from('vista_citas_ausentes');
+        $this->db->where('fecha_hora >=', $inicio_mes);
+        $this->db->where('fecha_hora <=', $fin_mes);
 
-            $page_data['reports'] = $this->db->get()->result_array();
-            $page_data['selected_mes'] = $mes;
-        }
+        $page_data['reports'] = $this->db->get()->result_array();
+        $page_data['selected_mes'] = $mes;
 
-        $this->load->view('index', $page_data);
+        // Extraer año y mes numéricos
+        $ano = date('Y', strtotime($mes . '-01'));
+        $mes_num = date('m', strtotime($mes . '-01'));
+
+        // Registrar generación del reporte en tabla reporte
+        $data_reporte = [
+            'tipo' => 'ausentes',
+            'mes' => $mes_num,
+            'ano' => $ano,
+            'parametro_id' => null,  // No hay parámetro específico para ausentes
+            'fecha_generacion' => date('Y-m-d H:i:s')
+        ];
+        $this->db->insert('reporte', $data_reporte);
     }
+
+    $this->load->view('index', $page_data);
+}
+
 
 
 
