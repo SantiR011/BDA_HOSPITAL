@@ -186,7 +186,9 @@
 
                         <div class="control-group">
                             <label class="control-label">Fecha de Nacimiento</label>
-                            <div class="controls"><input type="date" name="fecha_nac" required /></div>
+                            <div class="controls">
+                                <input type="date" name="fecha_nac" max="<?php echo date('Y-m-d'); ?>" required />
+                            </div>
                         </div>
 
                     </div>

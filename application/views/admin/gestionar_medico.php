@@ -168,6 +168,12 @@
                             <div class="controls"><input type="text" name="telefono_principal" required /></div>
                         </div>
                         <div class="control-group">
+                            <label class="control-label">Fecha de Nacimiento</label>
+                            <div class="controls">
+                                <input type="date" name="fecha_nac" max="<?php echo date('Y-m-d'); ?>" required />
+                            </div>
+                        </div>
+                        <div class="control-group">
                             <label class="control-label">Especialidad</label>
                             <div class="controls">
                                 <select name="especialidad_id" class="uniform" style="width:100%;">

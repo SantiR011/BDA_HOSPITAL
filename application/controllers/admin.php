@@ -266,22 +266,31 @@ class Admin extends CI_Controller
             redirect(base_url() . 'index.php?login', 'refresh');
 
         if ($param1 == 'create') {
-            $data['tipo_id'] = $this->input->post('tipo_id');
-            $data['numero_id'] = $this->input->post('numero_id');
-            $data['nombres'] = $this->input->post('nombres');
-            $data['apellidos'] = $this->input->post('apellidos');
-            $data['correo'] = $this->input->post('correo');
-            $data['contrasena'] = $this->input->post('contrasena');
-            $data['direccion'] = $this->input->post('direccion');
-            $data['municipio_id'] = $this->input->post('municipio_id');
-            $data['telefono_principal'] = $this->input->post('telefono_principal');
-            $data['fecha_nac'] = $this->input->post('fecha_nac');
+    $data['tipo_id'] = $this->input->post('tipo_id');
+    $data['numero_id'] = $this->input->post('numero_id');
+    $data['nombres'] = $this->input->post('nombres');
+    $data['apellidos'] = $this->input->post('apellidos');
+    $data['correo'] = $this->input->post('correo');
+    $data['contrasena'] = $this->input->post('contrasena');
+    $data['direccion'] = $this->input->post('direccion');
+    $data['municipio_id'] = $this->input->post('municipio_id');
+    $data['telefono_principal'] = $this->input->post('telefono_principal');
+    $fecha_nac = $this->input->post('fecha_nac');
 
-            $this->db->insert('paciente', $data);
-            $this->email_model->account_opening_email('paciente', $data['correo']);
-            $this->session->set_flashdata('flash_message', 'Paciente creado correctamente.');
-            redirect(base_url() . 'index.php?admin/gestionar_paciente', 'refresh');
-        }
+    // Validar que la fecha sea válida y no mayor a la actual
+    if (strtotime($fecha_nac) === false || strtotime($fecha_nac) > strtotime(date('Y-m-d'))) {
+        $this->session->set_flashdata('error_message', 'La fecha de nacimiento no es válida o es mayor a la fecha actual.');
+        redirect(base_url() . 'index.php?admin/gestionar_paciente', 'refresh');
+    }
+
+    $data['fecha_nac'] = $fecha_nac;
+
+    $this->db->insert('paciente', $data);
+    $this->email_model->account_opening_email('paciente', $data['correo']);
+    $this->session->set_flashdata('flash_message', 'Paciente creado correctamente.');
+    redirect(base_url() . 'index.php?admin/gestionar_paciente', 'refresh');
+}
+
 
         if ($param1 == 'edit' && $param2 == 'do_update') {
             $data['tipo_id'] = $this->input->post('tipo_id');
@@ -391,7 +400,15 @@ class Admin extends CI_Controller
             $data['municipio_id'] = $this->input->post('municipio_id');
             $data['telefono_principal'] = $this->input->post('telefono_principal');
             $data['especialidad_id'] = $this->input->post('especialidad_id');
-            $data['fecha_nac'] = $this->input->post('fecha_nac');
+            $fecha_nac = $this->input->post('fecha_nac');
+
+    // Validar que la fecha sea válida y no mayor a la actual
+    if (strtotime($fecha_nac) === false || strtotime($fecha_nac) > strtotime(date('Y-m-d'))) {
+        $this->session->set_flashdata('error_message', 'La fecha de nacimiento no es válida o es mayor a la fecha actual.');
+        redirect(base_url() . 'index.php?admin/gestionar_medico', 'refresh');
+    }
+
+    $data['fecha_nac'] = $fecha_nac;
 
             $this->db->insert('medico', $data);
             $this->email_model->account_opening_email('medico', $data['correo']);
